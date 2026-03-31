@@ -1,0 +1,59 @@
+
+
+import { browser } from 'wxt/browser';
+export default defineContentScript({
+ matches: ["https://listado.mercadolibre.com.uy/inmuebles/apartamentos/*"],
+   main(ctx) {
+     function sendMessage(msg,port) {
+  try {
+    port.postMessage(msg);
+  } catch (e) {
+    console.error("Failed to send, retrying connection", e);
+    port=browser.runtime.connect({name:port.name});
+    port.postMessage(msg);
+  }
+}
+    let pos=document.querySelector(".brand-wrapper-showroom-desktop");
+    const app = document.createElement('p');
+    let port=browser.runtime.connect({"name":"contBack"});
+    port.onDisconnect.addListener(()=>{
+         console.log("port disconnected");
+        port=browser.runtime.connect({name:"contBack"});
+    } );
+    console.log('MI content script');
+    pos?.prepend(app);
+     //   });
+ 
+    // const ui = createIntegratedUi(ctx, {
+    //   position: 'inline',
+    //   anchor: pos,
+    //   append: 'first',
+    //   onMount: (container) => {
+    //     // Append children to the container
+    //     app.textContent = 'APP CONTENT...';
+    //     container.append(app);
+    //   },
+    //   });
+      port.onMessage.addListener((message)=>{
+        console.log(message);
+      });
+      setInterval(()=>{
+        console.log("Sending Message",port);
+      sendMessage("Content Up",port);
+      },
+      5000);
+    // setTimeout(async ()=>{
+    //  browser.runtime.sendMessage({type:"Hola",message:"Hola Back !!"});
+    //     },1000);  
+    // browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    //   app.innerText=JSON.stringify(message,null,2);
+    //   console.log("Content script received message:", {m:message,s:sender});
+    //   sendResponse("QUE PASA Back???");
+    //   return true;
+    // });
+   // pos?.childNodes[0].remove();
+
+    //ui.mount();
+   },
+   });
+

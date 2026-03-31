@@ -1,0 +1,60 @@
+import { browser , type Browser} from 'wxt/browser';
+
+export default defineBackground(() => {
+   console.log('Hello background!', { id: browser.runtime.id });
+  //  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  //     console.log("Content script received message:", {m:message,s:sender});
+  //     sendResponse(Math.random());
+  //     return true;
+  //   });
+ async function sendMessage(msg:any,port:Browser.runtime.Port) {
+    console.log(`sending ${JSON.stringify(msg)} by ${port.name}`)
+  try {
+    if(port){
+      port.postMessage(msg);
+    }
+  } catch (e) {
+    let ltabs=await browser.tabs.query({ active: true, currentWindow: true })
+    let lId:number=ltabs[0].id||-1;      
+        console.error("Failed to send, retrying connection", port,lId);
+          if(lId!=-1){
+            port=browser.tabs.connect(lId,{name:port.name});
+            await port.postMessage(msg);
+          } else  { console.log("lId-1")}
+      // catch(e=>console.error("Failed to send, retrying connection", port))
+  }
+}
+let k=async () => {
+  let [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  let pUp:Browser.runtime.Port;
+  let lId:number=tab.id||-1;
+  setTimeout(()=>{
+  pUp=browser.tabs.connect(lId,{name:"contBack"});
+
+  pUp.onDisconnect.addListener(()=>{
+    console.log("port disconnected");
+    pUp=browser.tabs.connect(lId,{name:"contBack"});
+ });
+
+  },1000);
+ 
+ if (lId) {
+  setInterval(async ()=>{
+  await sendMessage(
+   {
+    type: "TEST",
+    message: `Hola desde background ${Math.random()}`,
+  },pUp)
+  console.log("sending to ",pUp)
+  pUp.postMessage("Hola Pup !!!");
+  }
+ ,2000);
+} else {
+  console.log("No hay tab");
+ }};
+
+ console.log("preK");
+ setTimeout(k,5000);
+});
+// https://listado.mercadolibre.com.uy/api/search/picturesCarousel?item_id=MLU1256274062&variation_ids=
+// _n.ctx.r.appProps.sharedState.search.results[].metadata.id - url - url_fragments

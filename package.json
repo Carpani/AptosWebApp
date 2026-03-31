@@ -1,0 +1,21 @@
+{
+  "name": "wxt-starter",
+  "description": "manifest.json description",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:chrome": "wxt -b chrome",
+    "build": "wxt build",
+    "build:chrome": "wxt build -b chrome",
+    "zip": "wxt zip",
+    "zip:chrome": "wxt zip -b chrome",
+    "compile": "tsc --noEmit",
+    "postinstall": "wxt prepare"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "wxt": "^0.20.20"
+  }
+}
