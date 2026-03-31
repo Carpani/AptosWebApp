@@ -17,6 +17,7 @@ export default defineContentScript({
     catch(e) {
       console.log("Post Error:",e);
       port=connect(port.name);
+      if(port)
       port.postMessage(msg);
     }
 
@@ -25,17 +26,14 @@ export default defineContentScript({
   function connect(portName:string){
     console.log("connect name",portName);
     let port:Browser.runtime.Port=browser.runtime.connect({name:portName}); // conexion al canal
-    port.onDisconnect.addListener(()=>{
-      port=browser.runtime.connect({name:portName});
-      port.postMessage({type:"start"});
-    });
     return port;
   }
-
     let backPort:Browser.runtime.Port;
+  
     let continuar=false;
     browser.runtime.sendMessage({type:"init"});
     let countConnect=0;
+    console.log("Ini Connect");
     browser.runtime.onConnect.addListener(
        
       (port)=>{
@@ -46,7 +44,7 @@ export default defineContentScript({
 
         port.onMessage.addListener((msg)=>
         {
-          sendMessage("rcv Back...",backPort);
+          sendMessage({type:"Received"},backPort);
         });
         
         backPort=port;
@@ -60,6 +58,10 @@ export default defineContentScript({
     setTimeout(()=>{
       backPort=connect("conn-back");
       sendMessage({type:"onChannel",message:"first"},backPort);
+      backPort.onDisconnect.addListener(()=>{
+      backPort=browser.runtime.connect({name:backPort.name});
+      sendMessage({type:"start"},backPort);
+    });
       continuar=true;
     },
     1000);
